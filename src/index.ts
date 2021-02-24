@@ -1,8 +1,6 @@
 import * as PIXI from 'pixi.js';
-import * as WebFont from 'webfontloader';
 import HUD from './hud';
 import Game from './game';
-import '../css/fonts';
 
 let hud: HUD;
 let game: Game;
@@ -28,24 +26,14 @@ window.addEventListener('resize', () => {
   resize(app, BASE_WIDTH, BASE_HEIGHT);
 });
 
-const webFontConfig: WebFont.Config = {
-  custom: {
-    families: ['Hikou Outline', 'Hikou Light', 'Hikou Regular'],
-    urls: ['../css/fonts.css']
-  },
-  active() {
-    loadTextures();
-  },
-  inactive() {
-    console.error('Could not load fonts...');
-  },
-  fontinactive(familyName: string, fvd: string) {
-    console.error(`font failed to load ${familyName}`);
-  },
-  timeout: 3000,
-};
+async function setupFonts() {
+  console.log('Loading fonts');
+  await loadFonts('Hikou Outline', './fonts/Hikou Outline.otf');
+  await loadFonts('Hikou Light', './fonts/Hikou Light.otf');
+  await loadFonts('Hikou Regular', './fonts/Hikou Regular.otf');
+}
 
-WebFont.load(webFontConfig);
+setupFonts().then(() => { console.log('Fonts loaded') }).catch((err) => { console.error(err); }).finally(() => { loadTextures(); });
 
 const handleLoadComplete = () => {
   console.log('All textures loaded');
@@ -78,6 +66,17 @@ function loadTextures() {
     .add('heart', './images/heart.png')
     .load();
 };
+
+async function loadFonts(name: string, url: string) {
+  const font = new FontFace(name, `url('${url}')`);
+  try {
+    await font.load();
+    document.fonts.add(font);
+    document.body.classList.add('fonts-loaded');
+  } catch (error) {
+    throw new Error(`Could not load font ${name}: ${error.message}`);
+  };
+}
 
 /**
  * Initializes the game
